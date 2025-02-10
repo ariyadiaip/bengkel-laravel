@@ -7,6 +7,7 @@ use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\SukuCadangController;
 use App\Http\Controllers\JasaController;
 use App\Http\Controllers\MekanikController;
+use App\Http\Controllers\KuitansiController;
 use Illuminate\Http\Request;
 
 Route::get('/', function () {
@@ -35,6 +36,8 @@ Route::post('/fake-login', function (Request $request) {
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::resource('transaksi', TransaksiController::class);
+Route::put('/transaksi/{id}/update-status', [TransaksiController::class, 'updateStatus'])->name('transaksi.updateStatus');
+Route::put('/transaksi/{id}/update-status-v2', [TransaksiController::class, 'updateStatusOnIndex'])->name('transaksi.updateStatusOnIndex');
 Route::resource('pelanggan', PelangganController::class);
 Route::resource('suku-cadang', SukuCadangController::class);
 Route::resource('jasa', JasaController::class);
@@ -43,5 +46,8 @@ Route::get('/api/get-kendaraan/{id_pelanggan}', function ($id_pelanggan) {
     $kendaraan = DB::table('kendaraan')->where('id_pelanggan', $id_pelanggan)->first();
     return response()->json($kendaraan);
 });
+Route::get('/cek-kuitansi', [KuitansiController::class, 'formCekKuitansi'])->name('cek-kuitansi');
+Route::get('/cek-kuitansi/proses', [KuitansiController::class, 'cekKuitansi'])->name('cek-kuitansi.proses');
+Route::get('/cek-kuitansi/{no_kuitansi}/detail', [KuitansiController::class, 'detailKuitansi'])->name('cek-kuitansi.detail');
 
 

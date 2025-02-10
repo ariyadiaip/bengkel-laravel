@@ -25,4 +25,9 @@ class DetailTransaksiSukuCadang extends Model
     {
         return $this->belongsTo(Transaksi::class, 'id_transaksi');
     }
+
+    public function sukuCadang()
+    {
+        return $this->belongsTo(SukuCadang::class, 'id_suku_cadang');
+    }
 }

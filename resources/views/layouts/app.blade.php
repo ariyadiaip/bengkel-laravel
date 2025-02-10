@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <!-- Link to custom styles -->
     <link href="{{ asset('assets/css/styles.css') }}" rel="stylesheet">
+    @yield('styles') <!-- Bagian ini akan memuat CSS dari child template -->
 </head>
 <body>
     <!-- Layout Wrapper -->

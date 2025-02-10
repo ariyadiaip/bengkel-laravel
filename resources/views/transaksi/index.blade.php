@@ -58,9 +58,9 @@
                             <a href="{{ route('transaksi.show', $t->id_transaksi) }}" class="btn btn-info btn-sm flex-item">
                                 <i class="bi bi-eye"></i> &nbsp;Detail
                             </a>
-                            <a href="{{ route('transaksi.edit', $t->id_transaksi) }}" class="btn btn-warning btn-sm flex-item">
+                            <button type="button" class="btn btn-warning btn-sm flex-item" data-bs-toggle="modal" data-bs-target="#editModal" data-action="{{ route('transaksi.updateStatusOnIndex', $t->id_transaksi) }}" data-kuitansi="{{ $t->no_kuitansi }}" data-status="{{ $t->status_pembayaran }}">
                                 <i class="bi bi-pencil-square"></i> &nbsp;Edit
-                            </a>
+                            </button>
                             <button type="button" class="btn btn-danger btn-sm flex-item" data-bs-toggle="modal" data-bs-target="#deleteModal" data-action="{{ route('transaksi.destroy', $t->id_transaksi) }}">
                                 <i class="bi bi-trash"></i> &nbsp;Hapus
                             </button>
@@ -73,6 +73,36 @@
                     @endforelse
                 </tbody>
             </table>
+            <!-- Modal Edit Status -->
+            <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editModalLabel">Edit Status Pembayaran</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="edit-status-form" method="POST" action="">
+                            @csrf
+                            @method('PUT')
+                            <div class="modal-body">
+                                <p><strong>No. Kuitansi:</strong> <span id="edit-no-kuitansi"></span></p>
+                                <div class="mb-3">
+                                    <label for="status_pembayaran" class="form-label">Status Pembayaran:</label>
+                                    <select class="form-control" name="status_pembayaran" id="status_pembayaran">
+                                        <option value="Lunas">Lunas</option>
+                                        <option value="Belum Lunas">Belum Lunas</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- Modal Konfirmasi Hapus -->
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -98,9 +128,28 @@
             </div>
 
             <script>
-                document.querySelectorAll('[data-bs-toggle="modal"]').forEach(button => {
-                    button.addEventListener('click', function () {
-                        document.getElementById('delete-form').setAttribute('action', this.getAttribute('data-action'));
+                document.addEventListener("DOMContentLoaded", function () {
+                    // Modal Edit Status
+                    document.querySelectorAll("[data-bs-target='#editModal']").forEach(button => {
+                        button.addEventListener("click", function () {
+                            const actionUrl = this.getAttribute("data-action");
+                            const noKuitansi = this.getAttribute("data-kuitansi"); // Ambil no kuitansi dari tombol
+                            const statusPembayaran = this.getAttribute("data-status"); // Ambil status pembayaran saat ini
+
+                            document.getElementById("edit-status-form").setAttribute("action", actionUrl);
+                            document.getElementById("edit-no-kuitansi").textContent = noKuitansi; // Masukkan ke modal
+
+                            // Atur opsi yang terpilih di dropdown
+                            document.getElementById("status_pembayaran").value = statusPembayaran;
+                        });
+                    });
+
+                    // Modal Hapus
+                    document.querySelectorAll("[data-bs-target='#deleteModal']").forEach(button => {
+                        button.addEventListener("click", function () {
+                            const actionUrl = this.getAttribute("data-action");
+                            document.getElementById("delete-form").setAttribute("action", actionUrl);
+                        });
                     });
                 });
             </script>

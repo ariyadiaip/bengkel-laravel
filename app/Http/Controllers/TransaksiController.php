@@ -36,7 +36,7 @@ class TransaksiController extends Controller
                          ->orWhere('tanggal_transaksi', 'like', "%$search%")
                          ->orWhere('grand_total', 'like', "%$search%")
                          ->orWhere('status_pembayaran', 'like', "%$search%");
-        })->orderBy('tanggal_transaksi', $sort)->paginate(10);
+        })->orderBy('no_kuitansi', $sort)->paginate(10);
 
         return view('transaksi.index', compact('transaksi', 'search', 'sort'));
     }
@@ -138,9 +138,16 @@ class TransaksiController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        $transaksi = Transaksi::with([
+            'kendaraan.pelanggan',
+            'mekanik',
+            'detailJasa.jasa',
+            'detailSukuCadang.sukuCadang'
+        ])->findOrFail($id);
+
+        return view('transaksi.detail', compact('transaksi'));
     }
 
     /**
@@ -157,6 +164,32 @@ class TransaksiController extends Controller
     public function update(Request $request, string $id)
     {
         //
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status_pembayaran' => 'required|in:Lunas,Belum Lunas'
+        ]);
+
+        $transaksi = Transaksi::findOrFail($id);
+        $transaksi->status_pembayaran = $request->status_pembayaran;
+        $transaksi->save();
+
+        return redirect()->route('transaksi.show', $id)->with('success', 'Status pembayaran berhasil diperbarui.');
+    }
+
+    public function updateStatusOnIndex(Request $request, $id)
+    {
+        $request->validate([
+            'status_pembayaran' => 'required|in:Lunas,Belum Lunas'
+        ]);
+
+        $transaksi = Transaksi::findOrFail($id);
+        $transaksi->status_pembayaran = $request->status_pembayaran;
+        $transaksi->save();
+
+        return redirect()->route('transaksi.index', $id)->with('success', 'Status pembayaran berhasil diperbarui.');
     }
 
     /**

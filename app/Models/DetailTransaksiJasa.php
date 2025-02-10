@@ -25,4 +25,9 @@ class DetailTransaksiJasa extends Model
     {
         return $this->belongsTo(Transaksi::class, 'id_transaksi');
     }
+
+    public function jasa()
+    {
+        return $this->belongsTo(Jasa::class, 'id_jasa');
+    }
 }
