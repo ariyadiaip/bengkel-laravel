@@ -49,7 +49,7 @@
         <div class="col-md-3">
             <div class="card border-primary shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Pendapatan (Rp)</h5>
+                    <h5 class="card-title">Pendapatan</h5>
                     <p class="card-text fs-4">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</p>
                 </div>
             </div>
