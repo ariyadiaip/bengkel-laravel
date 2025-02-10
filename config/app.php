@@ -14,7 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
-    'default_discount' => 10,
+    'default_discount' => 5,
     'cashier_name' => 'Nadya Sarasvatika',
 
     /*

@@ -58,7 +58,7 @@
         /* Saat Print, sembunyikan tombol */
         @media print {
             .button-container {
-                display: none;
+                display: none !important;
             }
         }
     </style>

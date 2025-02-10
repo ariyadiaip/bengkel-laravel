@@ -207,7 +207,7 @@
             tbody.innerHTML += `
                 <tr>
                     <td><input type="hidden" name="jasa[]" value="${jasa.id_jasa}">${jasa.nama_jasa}</td>
-                    <td>Rp ${harga.toLocaleString("id-ID")}</td>
+                    <td class="hargaJasa">Rp ${harga.toLocaleString("id-ID")}</td>
                     <td>1 <input type="hidden" name="qty_jasa[]" value="1"></td>
                     <td class="diskonJasa">Rp ${diskon.toLocaleString("id-ID")}</td>
                     <td class="totalJasa">Rp ${total.toLocaleString("id-ID")}</td>
@@ -227,7 +227,7 @@
             tbody.innerHTML += `
                 <tr>
                     <td><input type="hidden" name="suku_cadang[]" value="${sc.id_suku_cadang}">${sc.nama_suku_cadang}</td>
-                    <td>Rp ${harga.toLocaleString("id-ID")}</td>
+                    <td class="hargaSukuCadang">Rp ${harga.toLocaleString("id-ID")}</td>
                     <td><input type="number" name="qty_suku_cadang[]" value="1" min="1" class="qtySukuCadang" data-harga="${harga}" style="width: 50px;"></td>
                     <td class="diskonSukuCadang">Rp ${diskon.toLocaleString("id-ID")}</td>
                     <td class="totalSukuCadang">Rp ${total.toLocaleString("id-ID")}</td>
@@ -304,7 +304,7 @@
             let totalDiskon = 0;
 
             document.querySelectorAll("tr").forEach((row) => {
-                let totalCell = row.querySelector(".totalJasa, .totalSukuCadang");
+                let totalCell = row.querySelector(".hargaJasa, .hargaSukuCadang");
                 let diskonCell = row.querySelector(".diskonJasa, .diskonSukuCadang");
 
                 if (totalCell) {
@@ -315,7 +315,7 @@
                 }
             });
 
-            let total = subtotal; // Tidak perlu dikurangi lagi
+            let total = subtotal - totalDiskon; // Tidak perlu dikurangi lagi
 
             document.getElementById("subtotalHarga").innerText = subtotal.toLocaleString("id-ID");
             document.getElementById("diskonHarga").innerText = totalDiskon.toLocaleString("id-ID");

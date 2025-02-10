@@ -20,6 +20,11 @@ class KuitansiController extends Controller
 
         $transaksi = Transaksi::where('no_kuitansi', $request->no_kuitansi)->first();
 
+        // Cari transaksi dengan status "Lunas"
+        // $transaksi = Transaksi::where('no_kuitansi', $request->no_kuitansi)
+        //     ->where('status_pembayaran', 'Lunas')
+        //     ->first();
+
         if (!$transaksi) {
             return redirect()->route('cek-kuitansi')->with('error', 'Kuitansi tidak ditemukan.');
         }
