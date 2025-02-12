@@ -304,7 +304,7 @@
             let totalDiskon = 0;
 
             document.querySelectorAll("tr").forEach((row) => {
-                let totalCell = row.querySelector(".hargaJasa, .hargaSukuCadang");
+                let totalCell = row.querySelector(".totalJasa, .totalSukuCadang");
                 let diskonCell = row.querySelector(".diskonJasa, .diskonSukuCadang");
 
                 if (totalCell) {
@@ -312,6 +312,7 @@
                 }
                 if (diskonCell) {
                     totalDiskon += parseInt(diskonCell.innerText.replace(/\D/g, "")) || 0;
+                    subtotal += parseInt(diskonCell.innerText.replace(/\D/g, "")) || 0;
                 }
             });
 
