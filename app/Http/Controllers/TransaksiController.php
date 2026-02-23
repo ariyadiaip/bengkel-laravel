@@ -11,7 +11,9 @@ use App\Models\SukuCadang;
 use App\Models\DetailTransaksiJasa;
 use App\Models\DetailTransaksiSukuCadang;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Exception;
 
 class TransaksiController extends Controller
 {
@@ -128,10 +130,13 @@ class TransaksiController extends Controller
             $transaksi->update(['grand_total' => $totalHarga]);
 
             DB::commit();
+            Log::info("Transaksi Baru Created: #" . $transaksi->no_kuitansi . " | Total: Rp" . number_format($totalHarga) . " | Oleh: " . auth()->user()->email);
+
             return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil disimpan!');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            Log::error("Gagal simpan transaksi: " . $e->getMessage());
+            return back()->with('error', 'Gagal menyimpan transaksi: ' . $e->getMessage());
         }
     }
 
@@ -172,11 +177,19 @@ class TransaksiController extends Controller
             'status_pembayaran' => 'required|in:Lunas,Belum Lunas'
         ]);
 
-        $transaksi = Transaksi::findOrFail($id);
-        $transaksi->status_pembayaran = $request->status_pembayaran;
-        $transaksi->save();
+        try {
+            $transaksi = Transaksi::findOrFail($id);
+            $oldStatus = $transaksi->status_pembayaran;
+            $transaksi->status_pembayaran = $request->status_pembayaran;
+            $transaksi->save();
 
-        return redirect()->route('transaksi.show', $id)->with('success', 'Status pembayaran berhasil diperbarui.');
+            Log::info("Status Transaksi #" . $transaksi->no_kuitansi . " diubah dari " . $oldStatus . " menjadi " . $request->status_pembayaran);
+
+            return redirect()->route('transaksi.show', $id)->with('success', 'Status pembayaran berhasil diperbarui.');
+        } catch (Exception $e) {
+            Log::error("Gagal update status transaksi: " . $e->getMessage());
+            return back()->with('error', 'Gagal memperbarui status.');
+        }
     }
 
     public function updateStatusOnIndex(Request $request, $id)
@@ -185,11 +198,19 @@ class TransaksiController extends Controller
             'status_pembayaran' => 'required|in:Lunas,Belum Lunas'
         ]);
 
-        $transaksi = Transaksi::findOrFail($id);
-        $transaksi->status_pembayaran = $request->status_pembayaran;
-        $transaksi->save();
+        try {
+            $transaksi = Transaksi::findOrFail($id);
+            $oldStatus = $transaksi->status_pembayaran;
+            $transaksi->status_pembayaran = $request->status_pembayaran;
+            $transaksi->save();
 
-        return redirect()->route('transaksi.index', $id)->with('success', 'Status pembayaran berhasil diperbarui.');
+            Log::info("Status Transaksi #" . $transaksi->no_kuitansi . " diubah dari " . $oldStatus . " menjadi " . $request->status_pembayaran);
+
+            return redirect()->route('transaksi.index', $id)->with('success', 'Status pembayaran berhasil diperbarui.');
+        } catch (Exception $e) {
+            Log::error("Gagal update status transaksi: " . $e->getMessage());
+            return back()->with('error', 'Gagal memperbarui status.');
+        }
     }
 
     /**
@@ -197,9 +218,12 @@ class TransaksiController extends Controller
      */
     public function destroy($id)
     {
+        DB::beginTransaction();
+
         try {
             // Cari transaksi
             $transaksi = Transaksi::findOrFail($id);
+            $noKuitansi = $transaksi->no_kuitansi;
 
             // Hapus detail transaksi jasa
             DetailTransaksiJasa::where('id_transaksi', $id)->delete();
@@ -210,8 +234,13 @@ class TransaksiController extends Controller
             // Hapus transaksi utama
             $transaksi->delete();
 
+            DB::commit();
+            Log::warning("Transaksi #" . $noKuitansi . " DIHAPUS oleh: " . auth()->user()->email);
+
             return redirect()->route('transaksi.index')->with('success', 'Transaksi berhasil dihapus!');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error("Gagal hapus transaksi: " . $e->getMessage());
             return redirect()->route('transaksi.index')->with('error', 'Gagal menghapus transaksi: ' . $e->getMessage());
         }
     }

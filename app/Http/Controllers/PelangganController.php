@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Pelanggan;
 use App\Models\Kendaraan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class PelangganController extends Controller
 {
@@ -47,15 +50,26 @@ class PelangganController extends Controller
             'kendaraan.*.tahun' => 'required|digits:4',
         ]);
 
-        // Simpan data pelanggan
-        $pelanggan = Pelanggan::create($request->only(['nama_pelanggan', 'alamat', 'no_telepon']));
+        DB::beginTransaction();
+        try {
+            // Simpan data pelanggan
+            $pelanggan = Pelanggan::create($request->only(['nama_pelanggan', 'alamat', 'no_telepon']));
 
-        // Simpan data kendaraan terkait
-        foreach ($request->kendaraan as $kendaraan) {
-            $pelanggan->kendaraan()->create($kendaraan);
+            // Simpan data kendaraan terkait
+            foreach ($request->kendaraan as $kendaraan) {
+                $pelanggan->kendaraan()->create($kendaraan);
+            }
+
+            DB::commit(); // Simpan permanen jika semua sukses
+            Log::info("Admin [" . auth()->user()->email . "] menambah pelanggan & kendaraan: " . $pelanggan->nama_pelanggan);
+
+            return redirect()->route('pelanggan.index')->with('success', 'Pelanggan berhasil ditambahkan.');
+        } catch (Exception $e) {
+            DB::rollBack(); // Batalkan semua jika ada satu saja yang gagal
+            Log::error("Gagal tambah pelanggan: " . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan sistem saat menyimpan data.');
         }
-
-        return redirect()->route('pelanggan.index')->with('success', 'Pelanggan berhasil ditambahkan.');
+        
         
     }
 
@@ -84,23 +98,44 @@ class PelangganController extends Controller
             'kendaraan.*.tahun' => 'required|digits:4',
         ]);
 
-        // Update pelanggan
-        $pelanggan->update($request->only(['nama_pelanggan', 'alamat', 'no_telepon']));
+        DB::beginTransaction();
+        try {
+            // Update pelanggan
+            $pelanggan->update($request->only(['nama_pelanggan', 'alamat', 'no_telepon']));
 
-        // Hapus kendaraan lama & tambahkan yang baru
-        $pelanggan->kendaraan()->delete();
-        foreach ($request->kendaraan as $kendaraan) {
-            $pelanggan->kendaraan()->create($kendaraan);
+            // Hapus kendaraan lama & tambahkan yang baru
+            $pelanggan->kendaraan()->delete();
+            foreach ($request->kendaraan as $kendaraan) {
+                $pelanggan->kendaraan()->create($kendaraan);
+            }
+
+            DB::commit();
+            Log::info("Admin [" . auth()->user()->email . "] memperbarui data pelanggan ID: " . $pelanggan->id_pelanggan);
+
+            return redirect()->route('pelanggan.index')->with('success', 'Pelanggan berhasil diperbarui.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error("Gagal update pelanggan ID " . $pelanggan->id_pelanggan . ": " . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat memperbarui data.');
         }
-
-        return redirect()->route('pelanggan.index')->with('success', 'Pelanggan berhasil diperbarui.');
     }
 
     public function destroy(Pelanggan $pelanggan)
     {
-        $pelanggan->kendaraan()->delete();
-        $pelanggan->delete();
+        DB::beginTransaction();
+        try {
+            $nama = $pelanggan->nama_pelanggan;
+            $pelanggan->kendaraan()->delete();
+            $pelanggan->delete();
+    
+            DB::commit();
+            Log::warning("Admin [" . auth()->user()->email . "] menghapus data pelanggan: " . $nama);
 
-        return redirect()->route('pelanggan.index')->with('success', 'Pelanggan berhasil dihapus.');
+            return redirect()->route('pelanggan.index')->with('success', 'Pelanggan berhasil dihapus.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error("Gagal hapus pelanggan: " . $e->getMessage());
+            return back()->with('error', 'Data gagal dihapus karena masih terkait dengan transaksi aktif.');
+        }
     }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Jasa;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class JasaController extends Controller
 {
@@ -50,12 +52,18 @@ class JasaController extends Controller
             'harga_satuan' => 'required|numeric|min:0',
         ]);
 
-        $request->merge([
-            'nama_jasa' => strtoupper($request->nama_jasa), // Ubah jadi kapital
-        ]);
+        try {
+            $request->merge([
+                'nama_jasa' => strtoupper($request->nama_jasa), // Ubah jadi kapital
+            ]);
 
-        Jasa::create($request->all());
-        return redirect()->route('jasa.index')->with('success', 'Jasa berhasil ditambahkan.');
+            Jasa::create($request->all());
+            Log::info("Admin [" . auth()->user()->email . "] menambahkan jasa baru: " . $request->nama_jasa);
+            return redirect()->route('jasa.index')->with('success', 'Jasa berhasil ditambahkan.');
+        } catch (Exception $e) {
+            Log::error("Gagal tambah jasa: " . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan sistem saat menambah data.');
+        }
     }
 
     /**
@@ -84,12 +92,18 @@ class JasaController extends Controller
             'harga_satuan' => 'required|numeric|min:0',
         ]);
 
-        $request->merge([
-            'nama_jasa' => strtoupper($request->nama_jasa), // Ubah jadi kapital
-        ]);
+        try {
+            $request->merge([
+                'nama_jasa' => strtoupper($request->nama_jasa), // Ubah jadi kapital
+            ]);
 
-        $jasa->update($request->all());
-        return redirect()->route('jasa.index')->with('success', 'Jasa berhasil diperbarui.');
+            $jasa->update($request->all());
+            Log::info("Admin [" . auth()->user()->email . "] memperbarui jasa ID: " . $jasa->id_jasa);
+            return redirect()->route('jasa.index')->with('success', 'Jasa berhasil diperbarui.');
+        } catch (Exception $e) {
+            Log::error("Gagal update jasa ID " . $jasa->id_jasa . ": " . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan sistem saat memperbarui data.');
+        }
     }
 
     /**
@@ -97,7 +111,16 @@ class JasaController extends Controller
      */
     public function destroy(Jasa $jasa)
     {
-        $jasa->delete();
-        return redirect()->route('jasa.index')->with('success', 'Jasa berhasil dihapus.');
+        try {
+            $namaJasa = $jasa->nama_jasa;
+            $jasa->delete();
+
+            Log::warning("Admin [" . auth()->user()->email . "] menghapus jasa: " . $namaJasa);
+            return redirect()->route('jasa.index')->with('success', 'Jasa berhasil dihapus.');
+
+        } catch (Exception $e) {
+            Log::error("Gagal hapus jasa: " . $e->getMessage());
+            return back()->with('error', 'Data gagal dihapus. Pastikan data tidak sedang digunakan di transaksi lain.');
+        }
     }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\SukuCadang;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class SukuCadangController extends Controller
 {
@@ -50,12 +52,18 @@ class SukuCadangController extends Controller
             'harga_satuan' => 'required|numeric|min:0',
         ]);
 
-        $request->merge([
-            'nama_suku_cadang' => strtoupper($request->nama_suku_cadang), // Ubah jadi kapital
-        ]);
+        try{
+            $request->merge([
+                'nama_suku_cadang' => strtoupper($request->nama_suku_cadang), // Ubah jadi kapital
+            ]);
 
-        SukuCadang::create($request->all());
-        return redirect()->route('suku-cadang.index')->with('success', 'Suku Cadang berhasil ditambahkan.');
+            SukuCadang::create($request->all());
+            Log::info("Admin [" . auth()->user()->email . "] menambah stok suku cadang: " . $request->nama_suku_cadang);
+            return redirect()->route('suku-cadang.index')->with('success', 'Suku Cadang berhasil ditambahkan.');
+        } catch (Exception $e) {
+            Log::error("Gagal simpan suku cadang: " . $e->getMessage());
+            return back()->with('error', 'Gagal menyimpan data suku cadang.');
+        }
     }
 
     /**
@@ -84,12 +92,18 @@ class SukuCadangController extends Controller
             'harga_satuan' => 'required|numeric|min:0',
         ]);
 
-        $request->merge([
-            'nama_suku_cadang' => strtoupper($request->nama_suku_cadang), // Ubah jadi kapital
-        ]);
+        try {
+            $request->merge([
+                'nama_suku_cadang' => strtoupper($request->nama_suku_cadang), // Ubah jadi kapital
+            ]);
 
-        $sukuCadang->update($request->all());
-        return redirect()->route('suku-cadang.index')->with('success', 'Suku Cadang berhasil diperbarui.');
+            $sukuCadang->update($request->all());
+            Log::info("Admin [" . auth()->user()->email . "] memperbarui suku cadang ID: " . $sukuCadang->id_suku_cadang);
+            return redirect()->route('suku-cadang.index')->with('success', 'Suku Cadang berhasil diperbarui.');
+        } catch (Exception $e) {
+            Log::error("Gagal update suku cadang ID " . $sukuCadang->id_suku_cadang . ": " . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan sistem saat memperbarui data.');
+        }
     }
 
     /**
@@ -97,7 +111,16 @@ class SukuCadangController extends Controller
      */
     public function destroy(SukuCadang $sukuCadang)
     {
-        $sukuCadang->delete();
-        return redirect()->route('suku-cadang.index')->with('success', 'Suku Cadang berhasil dihapus.');
+        try {
+            $namaSukuCadang = $sukuCadang->nama_suku_cadang;
+            $sukuCadang->delete();
+
+            Log::warning("Admin [" . auth()->user()->email . "] menghapus suku cadang: " . $namaSukuCadang);
+
+            return redirect()->route('suku-cadang.index')->with('success', 'Suku Cadang berhasil dihapus.');
+        } catch (Exception $e) {
+            Log::error("Gagal hapus suku cadang: " . $e->getMessage());
+            return back()->with('error', 'Data gagal dihapus. Suku cadang ini mungkin sudah tercatat dalam transaksi.');
+        }
     }
 }

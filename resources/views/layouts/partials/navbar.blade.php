@@ -5,13 +5,22 @@
 
         <!-- Nama Admin dan Dropdown di Kanan -->
         <div class="d-flex align-items-center">
-            <span class="navbar-text fw-bold text-white me-2">Admin</span>
+            <img src="{{ asset('images/users/' . Auth::user()->photo) }}" 
+                class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover; border: 1px solid white;">
+
+            <span class="navbar-text fw-bold text-white me-2">{{ Auth::user()->name }}</span>
 
             <div class="dropdown">
                 <button class="btn btn-transparent text-white" type="button" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-three-dots-vertical"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                            <i class="bi bi-person-circle"></i> Profil
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
                     <li>
                         <!-- Tombol untuk menampilkan modal logout -->
                         <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
@@ -44,4 +53,6 @@
 </div>
 
 <!-- Form Logout -->
-<form id="logout-form" action="{{ route('login') }}" method="GET" style="display: none;"></form>
+<form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+    @csrf
+</form>

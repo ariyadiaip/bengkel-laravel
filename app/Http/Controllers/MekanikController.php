@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Mekanik;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class MekanikController extends Controller
 {
@@ -55,8 +57,14 @@ class MekanikController extends Controller
             'no_telepon' => 'required|string|max:15',
         ]);
 
-        Mekanik::create($request->all());
-        return redirect()->route('mekanik.index')->with('success', 'Data Mekanik berhasil ditambahkan.');
+        try {
+            Mekanik::create($request->all());
+            Log::info("Admin [" . auth()->user()->email . "] menambah mekanik baru: " . $request->nama_mekanik);
+            return redirect()->route('mekanik.index')->with('success', 'Data Mekanik berhasil ditambahkan.');
+        } catch (Exception $e) {
+            Log::error("Gagal tambah mekanik: " . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan sistem saat menambah data.');
+        }
     }
 
     /**
@@ -86,8 +94,14 @@ class MekanikController extends Controller
             'no_telepon' => 'required|string|max:15',
         ]);
 
-        $mekanik->update($request->all());
-        return redirect()->route('mekanik.index')->with('success', 'Data Mekanik berhasil diperbarui.');
+        try {
+            $mekanik->update($request->all());
+            Log::info("Admin [" . auth()->user()->email . "] memperbarui data mekanik ID: " . $mekanik->id_mekanik);
+            return redirect()->route('mekanik.index')->with('success', 'Data Mekanik berhasil diperbarui.');
+        } catch (Exception $e) {
+            Log::error("Gagal update mekanik ID " . $mekanik->id_mekanik . ": " . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat memperbarui data.');
+        }
     }
 
     /**
@@ -95,7 +109,16 @@ class MekanikController extends Controller
      */
     public function destroy(Mekanik $mekanik)
     {
-        $mekanik->delete();
-        return redirect()->route('mekanik.index')->with('success', 'Data Mekanik berhasil dihapus.');
+        try {
+            $namaMekanik = $mekanik->nama_mekanik;
+            $mekanik->delete();
+
+            Log::warning("Admin [" . auth()->user()->email . "] menghapus data mekanik: " . $namaMekanik);
+            return redirect()->route('mekanik.index')->with('success', 'Data Mekanik berhasil dihapus.');
+
+        } catch (Exception $e) {
+            Log::error("Gagal hapus mekanik: " . $e->getMessage());
+            return back()->with('error', 'Data tidak bisa dihapus karena mungkin masih terikat dengan data transaksi.');
+        }
     }
 }
