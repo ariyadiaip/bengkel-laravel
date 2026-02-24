@@ -1,6 +1,56 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+@media print {
+    @page {
+        size: landscape;
+        margin: 0;
+    }
+
+    body {
+        margin: 0;
+        padding: 1cm;
+        visibility: hidden;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .d-print-block, 
+    .d-print-block *,
+    .card.mt-4, 
+    .card.mt-4 * {
+        visibility: visible;
+    }
+
+    .d-print-block {
+        position: absolute;
+        top: 1cm;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        display: block !important;
+    }
+
+    .card.mt-4 {
+        position: absolute;
+        top: 4.5cm;
+        left: 1cm;
+        right: 1cm;
+        width: calc(100% - 2cm) !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    #chartPendapatan {
+        width: 100% !important;
+        height: 12cm !important;
+    }
+
+    .card-title.d-print-none {
+        display: none !important;
+    }
+}
+</style>
 <div class="container mt-4">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h2>Dashboard</h2>
@@ -17,7 +67,21 @@
             <div>
                 <a href="{{ route('dashboard') }}" class="btn btn-secondary">Reset</a>
             </div>
+            <div>
+                <button onclick="window.print()" class="btn btn-danger d-print-none">
+                    <i class="fas fa-file-pdf"></i> Cetak PDF
+                </button>
+            </div>
         </form>
+    </div>
+
+    <div class="d-none d-print-block text-center mb-4">
+        <h1 style="margin-bottom: 5px;">LAPORAN GRAFIK PENDAPATAN</h1>
+        <h3 style="margin: 0; color: #444;">Tridjaya Merdeka Motor</h3>
+        <p style="font-size: 14px; margin-top: 5px;">
+            Periode: {{ $bulan ? \Carbon\Carbon::parse($bulan)->translatedFormat('F Y') : 'Semua Waktu' }}
+        </p>
+        <hr style="border: 1px solid #000;">
     </div>
 
     <!-- Cards -->
@@ -59,7 +123,7 @@
     <!-- Grafik -->
     <div class="card mt-4">
         <div class="card-body">
-            <h5 class="card-title">Grafik Pendapatan</h5>
+            <h5 class="card-title d-print-none">Grafik Pendapatan</h5>
             <canvas id="chartPendapatan"></canvas>
         </div>
     </div>
